@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Simulador de Oferta - Análisis Económico</title>
+    <style>
+        :root {
+            --bg-page: #f8fafc;
+            --surface-card: #ffffff;
+            --surface-subtle: #f1f5f9;
+            --surface-hover: #e2e8f0;
+            --border-subtle: #e2e8f0;
+            --border-strong: #cbd5e1;
+            
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --text-light: #64748b;
+            
+            --brand-primary: #c2410c;
+            --brand-accent: #ea580c;
+            --brand-light: #fff7ed;
+            --brand-border: #fed7aa;
+            
+            --curve-base: #94a3b8;
+            --curve-active: #ea580c;
+            --point-color: #0f172a;
+            --point-halo: rgba(15, 23, 42, 0.15);
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.02);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Cabecera Principal */
+        header {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid var(--border-subtle);
+            gap: 1.5rem;
+        }
+
+        /* Box Académico */
+        .academic-box {
+            background: var(--surface-card);
+            border: 1px solid var(--brand-border);
+            border-left: 3.5px solid var(--brand-accent);
+            border-radius: 8px;
+            padding: 0.65rem 1rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            min-width: 320px;
+        }
+
+        .academic-tag {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--brand-primary);
+        }
+
+        .academic-course {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+        }
+
+         .academic-program {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .academic-program, span {
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+        .author {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .header-title-container {
+            text-align: right;
+        }
+
+        .header-title-container h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+        }
+
+        .header-title-container h1 span {
+            color: var(--brand-accent);
+        }
+
+        .header-title-container p {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            margin-top: 0.15rem;
+        }
+
+        /* Contenedor Principal */
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            gap: 1.5rem;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        @media (max-width: 920px) {
+            header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+            .header-title-container {
+                text-align: left;
+            }
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Tarjeta de Controles */
+        .controls-card {
+            background-color: var(--surface-card);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border-subtle);
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .section-title {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-light);
+            font-weight: 700;
+            margin-bottom: 0.1rem;
+        }
+
+        .control-group {
+            background: var(--surface-card);
+            padding: 0.75rem 0.9rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .control-group:focus-within {
+            border-color: var(--brand-accent);
+            box-shadow: 0 0 0 1px var(--brand-accent);
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .control-header span.val-badge {
+            background: var(--surface-subtle);
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            color: var(--text-main);
+            font-weight: 600;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .slider-desc {
+            font-size: 0.72rem;
+            color: var(--text-light);
+            line-height: 1.35;
+        }
+
+        /* Estilización Sliders */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 5px;
+            border-radius: 3px;
+            background: var(--border-strong);
+            outline: none;
+            cursor: pointer;
+            margin: 4px 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--surface-card);
+            border: 2px solid var(--brand-accent);
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.1s ease, border-color 0.1s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            border-color: var(--brand-primary);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--surface-card);
+            border: 2px solid var(--brand-accent);
+            cursor: pointer;
+        }
+
+        /* Selector Toggle */
+        .toggle-container {
+            display: flex;
+            background: #e2e8f0;
+            border-radius: 8px;
+            padding: 3px;
+            gap: 4px;
+            margin-top: 6px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 6px 10px;
+            border: none;
+            background: transparent;
+            color: #475569;
+            font-size: 0.76rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .toggle-btn:hover:not(.active) {
+            color: #0f172a;
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .toggle-btn.active {
+            background: #0f172a;
+            color: #ffffff;
+            font-weight: 700;
+            box-shadow: 0 2px 5px rgba(15, 23, 42, 0.2);
+        }
+
+        /* Botón de Restablecer Condiciones */
+        .btn-reset {
+            background: #0f172a;
+            border: 1px solid #0f172a;
+            color: #ffffff;
+            padding: 9px 12px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+        }
+
+        .btn-reset:hover {
+            background: #1e293b;
+            border-color: #1e293b;
+            color: #ffffff;
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .btn-reset:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.2);
+        }
+
+        /* Tarjeta Gráfica */
+        .visual-card {
+            background-color: var(--surface-card);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border-subtle);
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        .legend {
+            display: flex;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            padding-bottom: 0.25rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            min-height: 400px;
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            overflow: hidden;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Panel Informativo */
+        .info-panel {
+            background: var(--brand-light);
+            border-radius: 8px;
+            padding: 0.9rem 1.1rem;
+            border: 1px solid var(--brand-border);
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .info-panel h3 {
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: var(--brand-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .info-panel p {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="academic-box">
+            <span class="academic-tag">Material Académico</span>
+            <div class="academic-course">Análisis Económico de los Impuestos</div>
+            <div class="academic-program">Maestría en Tributación y Política Fiscal &bull; <span>2026-2</span></div>
+            <div class="author">ge.lopezgonzales@gmail.com</div>
+        </div>
+
+        <div class="header-title-container">
+            <h1>Simulador de la dinámica de la <span>Curva de Oferta</span></h1>
+            <p>Análisis de movimientos a lo largo de la curva y desplazamientos estructurales</p>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Panel de Parámetros -->
+        <div class="controls-card">
+            <span class="section-title">Parámetros de Simulación</span>
+
+            <!-- 1. Precio del bien -->
+            <div class="control-group" style="border-left: 3px solid var(--text-main);">
+                <div class="control-header">
+                    <label for="price">1. Precio de Mercado (P)</label>
+                    <span class="val-badge" id="val-price">S/ 5.00</span>
+                </div>
+                <input type="range" id="price" min="0.5" max="9.5" step="0.1" value="5.0">
+                <span class="slider-desc">Genera <strong>movimiento a lo largo</strong> de la curva existente.</span>
+            </div>
+
+            <!-- 2. Costos de Producción -->
+            <div class="control-group">
+                <div class="control-header">
+                    <label for="costs">2. Costos de Producción (Insumos)</label>
+                    <span class="val-badge" id="val-costs">Base (0)</span>
+                </div>
+                <input type="range" id="costs" min="-40" max="40" step="1" value="0">
+                <span class="slider-desc">Aumento de costos desplaza la oferta hacia la izquierda.</span>
+            </div>
+
+            <!-- 3. Tecnología -->
+            <div class="control-group">
+                <div class="control-header">
+                    <label for="tech">3. Nivel Tecnológico</label>
+                    <span class="val-badge" id="val-tech">Neutral (0)</span>
+                </div>
+                <input type="range" id="tech" min="-40" max="40" step="1" value="0">
+                <span class="slider-desc">Mejoras técnicas expanden la capacidad productiva.</span>
+            </div>
+
+            <!-- 4. Política Fiscal -->
+            <div class="control-group">
+                <div class="control-header">
+                    <label for="fiscal">4. Política Fiscal e Intervención</label>
+                    <span class="val-badge" id="val-fiscal">Neutral (0)</span>
+                </div>
+                <input type="range" id="fiscal" min="0" max="40" step="1" value="0">
+                
+                <div style="margin-top: 3px;">
+                    <span class="slider-desc" style="display:block; margin-bottom:2px;">Naturaleza de la intervención del Estado:</span>
+                    <div class="toggle-container">
+                        <button type="button" class="toggle-btn active" id="btn-tax" onclick="setPolicyType('tax')">Impuesto (-)</button>
+                        <button type="button" class="toggle-btn" id="btn-subsidy" onclick="setPolicyType('subsidy')">Subsidio (+)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Precio de Bienes Relacionados en la Producción -->
+            <div class="control-group">
+                <span class="control-header" style="margin-bottom: 2px;">5. Bienes Relacionados (Producción)</span>
+                
+                <!-- Alternativo -->
+                <div style="margin-bottom: 6px;">
+                    <div class="control-header" style="font-size:0.77rem; font-weight: 500;">
+                        <label for="alt">Precio Bien Sustituto</label>
+                        <span class="val-badge" id="val-alt">0</span>
+                    </div>
+                    <input type="range" id="alt" min="-30" max="30" step="1" value="0">
+                </div>
+
+                <!-- Conjunto -->
+                <div>
+                    <div class="control-header" style="font-size:0.77rem; font-weight: 500;">
+                        <label for="joint">Precio Bien Complementario</label>
+                        <span class="val-badge" id="val-joint">0</span>
+                    </div>
+                    <input type="range" id="joint" min="-30" max="30" step="1" value="0">
+                </div>
+            </div>
+
+            <button class="btn-reset" onclick="resetAll()">↺ Restablecer Condiciones Iniciales</button>
+        </div>
+
+        <!-- Panel de Visualización -->
+        <div class="visual-card">
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--curve-base); border-top: 1px dashed var(--curve-base);"></div>
+                    <span>Oferta Inicial (O₀)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--brand-accent); height: 4px;"></div>
+                    <span>Oferta Desplazada (O₁)</span>
+                </div>
+                <div class="legend-item">
+                    <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--point-color);"></div>
+                    <span>Punto de Equilibrio (Q,P)</span>
+                </div>
+            </div>
+
+            <div class="canvas-container" id="canvasBox">
+                <canvas id="supplyCanvas"></canvas>
+            </div>
+
+            <div class="info-panel" id="analysisCard">
+                <h3 id="info-title">💡 Diagnóstico del Mercado</h3>
+                <p id="info-desc">El mercado se encuentra en sus condiciones base de referencia.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('supplyCanvas');
+        const container = document.getElementById('canvasBox');
+        const ctx = canvas.getContext('2d');
+
+        let policyType = 'tax';
+
+        // Elementos de Control
+        const priceInput = document.getElementById('price');
+        const costsInput = document.getElementById('costs');
+        const techInput = document.getElementById('tech');
+        const fiscalInput = document.getElementById('fiscal');
+        const altInput = document.getElementById('alt');
+        const jointInput = document.getElementById('joint');
+
+        // Badges numéricos
+        const valPrice = document.getElementById('val-price');
+        const valCosts = document.getElementById('val-costs');
+        const valTech = document.getElementById('val-tech');
+        const valFiscal = document.getElementById('val-fiscal');
+        const valAlt = document.getElementById('val-alt');
+        const valJoint = document.getElementById('val-joint');
+
+        // Panel Informativo
+        const infoTitle = document.getElementById('info-title');
+        const infoDesc = document.getElementById('info-desc');
+
+        function setPolicyType(type) {
+            policyType = type;
+            document.getElementById('btn-tax').classList.toggle('active', type === 'tax');
+            document.getElementById('btn-subsidy').classList.toggle('active', type === 'subsidy');
+            update();
+        }
+
+        function resetAll() {
+            priceInput.value = 5.0;
+            costsInput.value = 0;
+            techInput.value = 0;
+            fiscalInput.value = 0;
+            altInput.value = 0;
+            jointInput.value = 0;
+            setPolicyType('tax');
+        }
+
+        function resizeCanvas() {
+            const rect = container.getBoundingClientRect();
+            const width = rect.width || container.offsetWidth || 500;
+            const height = rect.height || container.offsetHeight || 400;
+            
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = Math.floor(width * dpr);
+            canvas.height = Math.floor(height * dpr);
+
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(dpr, dpr);
+
+            draw(width, height);
+        }
+
+        [priceInput, costsInput, techInput, fiscalInput, altInput, jointInput].forEach(el => {
+            el.addEventListener('input', update);
+        });
+
+        window.addEventListener('resize', () => requestAnimationFrame(resizeCanvas));
+        window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 150));
+
+        function update() {
+            valPrice.textContent = `S/ ${parseFloat(priceInput.value).toFixed(2)}`;
+            valCosts.textContent = (costsInput.value > 0 ? '+' : '') + costsInput.value;
+            valTech.textContent = (techInput.value > 0 ? '+' : '') + techInput.value;
+            valFiscal.textContent = fiscalInput.value;
+            valAlt.textContent = (altInput.value > 0 ? '+' : '') + altInput.value;
+            valJoint.textContent = (jointInput.value > 0 ? '+' : '') + jointInput.value;
+
+            updateExplanation();
+            
+            const rect = container.getBoundingClientRect();
+            const w = rect.width || container.offsetWidth || 500;
+            const h = rect.height || container.offsetHeight || 400;
+            draw(w, h);
+        }
+
+        function updateExplanation() {
+            const P = parseFloat(priceInput.value);
+            const C = parseInt(costsInput.value);
+            const T = parseInt(techInput.value);
+            const F = parseInt(fiscalInput.value);
+            const Alt = parseInt(altInput.value);
+            const Joint = parseInt(jointInput.value);
+
+            let fiscalImpact = policyType === 'subsidy' ? F : -F;
+            let totalShift = -C + T + fiscalImpact - Alt + Joint;
+            
+            // Ecuación base de oferta: Q = A + 10P. Con A = 20
+            let currentA = 20 + totalShift;
+            let minReservationP = currentA >= 0 ? 0 : (-currentA / 10);
+
+            let reasons = [];
+            if (C !== 0) reasons.push(C > 0 ? "alza de costos" : "reducción de costos");
+            if (T !== 0) reasons.push(T > 0 ? "mejora tecnológica" : "rezago tecnológico");
+            if (F !== 0) reasons.push(policyType === 'subsidy' ? "aplicación de subsidios" : "imposición de tributos");
+            if (Alt !== 0) reasons.push(Alt > 0 ? "alza de precio en bien sustituto" : "caída de precio en bien sustituto");
+            if (Joint !== 0) reasons.push(Joint > 0 ? "alza de precio en bien complementario" : "caída de precio en bien complementario");
+
+            if (P < minReservationP) {
+                infoTitle.innerHTML = `⚠️ Oferta Nula (Q = 0)`;
+                infoDesc.innerHTML = `El precio fijado (S/ ${P.toFixed(2)}) es inferior al <strong>costo marginal de entrada (S/ ${minReservationP.toFixed(2)})</strong>. A este nivel no existe incentivo para producir.`;
+            } else if (totalShift !== 0 && P !== 5.0) {
+                infoTitle.innerHTML = `⚡ Desplazamiento Paralelo + Movimiento por Precio`;
+                infoDesc.innerHTML = `La curva se desplazó de forma estrictamente paralela hacia la <strong>${totalShift > 0 ? 'derecha (expansión)' : 'izquierda (contracción)'}</strong> debido a: ${reasons.join(', ')}. El precio fijado en <strong>S/ ${P.toFixed(2)}</strong> define la cantidad ofrecida exacta sobre la curva O₁.`;
+            } else if (totalShift !== 0) {
+                infoTitle.innerHTML = `🔄 Desplazamiento Estructural Paralelo (${totalShift > 0 ? 'Expansión' : 'Contracción'})`;
+                infoDesc.innerHTML = `Factores productivos exógenos (${reasons.join(', ')}) desplazaron paralelamente la oferta hacia la <strong>${totalShift > 0 ? 'derecha' : 'izquierda'}</strong>, modificando la capacidad del mercado.`;
+            } else if (P !== 5.0) {
+                infoTitle.innerHTML = `📍 Movimiento a lo Largo de la Curva`;
+                infoDesc.innerHTML = `El cambio en el precio propio (S/ ${P.toFixed(2)}) modifica el incentivo de rentabilidad y genera una variación directa sobre la curva base existente O₀.`;
+            } else {
+                infoTitle.innerHTML = `💡 Diagnóstico del Mercado`;
+                infoDesc.innerHTML = `Condiciones iniciales de referencia. Modifica los controles de la izquierda para evaluar los impactos en la oferta.`;
+            }
+        }
+
+        function draw(w, h) {
+            ctx.clearRect(0, 0, w, h);
+
+            const padLeft = 55;
+            const padBottom = 45;
+            const padTop = 30;
+            const padRight = 30;
+
+            const graphW = Math.max(10, w - padLeft - padRight);
+            const graphH = Math.max(10, h - padTop - padBottom);
+
+            const maxQ = 150;
+            const maxP = 10;
+
+            function toX(q) { return padLeft + (q / maxQ) * graphW; }
+            function toY(p) { return padTop + graphH - (p / maxP) * graphH; }
+
+            // Rejilla Suave
+            ctx.strokeStyle = '#f1f5f9';
+            ctx.lineWidth = 1;
+            for (let q = 25; q <= 125; q += 25) {
+                let x = toX(q);
+                ctx.beginPath();
+                ctx.moveTo(x, padTop);
+                ctx.lineTo(x, padTop + graphH);
+                ctx.stroke();
+            }
+            for (let p = 2; p <= 8; p += 2) {
+                let y = toY(p);
+                ctx.beginPath();
+                ctx.moveTo(padLeft, y);
+                ctx.lineTo(padLeft + graphW, y);
+                ctx.stroke();
+            }
+
+            // Ejes Cartesianos
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(padLeft, padTop);
+            ctx.lineTo(padLeft, padTop + graphH);
+            ctx.lineTo(padLeft + graphW, padTop + graphH);
+            ctx.stroke();
+
+            // Rótulos de Ejes
+            ctx.fillStyle = '#475569';
+            ctx.font = '600 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText('P', padLeft - 10, padTop + 10);
+            ctx.fillText('Q', padLeft + graphW, padTop + graphH + 34);
+
+            // Valores en los Ejes
+            ctx.fillStyle = '#64748b';
+            ctx.font = '10px ui-monospace, SFMono-Regular, Menlo, monospace';
+            ctx.textAlign = 'center';
+            for (let q = 25; q <= 125; q += 25) {
+                ctx.fillText(q, toX(q), padTop + graphH + 16);
+            }
+
+            ctx.textAlign = 'right';
+            for (let p = 2; p <= 8; p += 2) {
+                ctx.fillText('S/ ' + p, padLeft - 8, toY(p) + 3.5);
+            }
+
+            // Modelo Matemático de Oferta (Pendiente positiva)
+            const C = parseInt(costsInput.value);
+            const T = parseInt(techInput.value);
+            const F = parseInt(fiscalInput.value);
+            const Alt = parseInt(altInput.value);
+            const Joint = parseInt(jointInput.value);
+
+            let fiscalImpact = policyType === 'subsidy' ? F : -F;
+            let totalShift = -C + T + fiscalImpact - Alt + Joint;
+            
+            const baseA = 20;
+            const currentA = baseA + totalShift;
+
+            function getLineSegment(A) {
+                let p1, q1, p2, q2;
+                
+                // Intersección con el eje inferior (P=0) o lateral izquierdo (Q=0)
+                if (A >= 0) {
+                    p2 = 0;
+                    q2 = A;
+                } else {
+                    q2 = 0;
+                    p2 = -A / 10;
+                }
+                
+                // Intersección superior o lateral derecho
+                let qAtMaxP = A + 10 * maxP;
+                if (qAtMaxP <= maxQ) {
+                    p1 = maxP;
+                    q1 = qAtMaxP;
+                } else {
+                    q1 = maxQ;
+                    p1 = (maxQ - A) / 10;
+                }
+                
+                if (p1 < p2) return null;
+                return { q1: q1, p1: p1, q2: q2, p2: p2 };
+            }
+
+            // Curva Base O0
+            const seg0 = getLineSegment(baseA);
+            if (seg0) {
+                ctx.save();
+                ctx.strokeStyle = '#94a3b8';
+                ctx.lineWidth = 1.75;
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(toX(seg0.q2), toY(seg0.p2)); // Bottom-left
+                ctx.lineTo(toX(seg0.q1), toY(seg0.p1)); // Top-right
+                ctx.stroke();
+                ctx.fillStyle = '#64748b';
+                ctx.font = '600 11px sans-serif';
+                ctx.fillText('O₀', toX(seg0.q1) + 14, toY(seg0.p1) + 8);
+                ctx.restore();
+            }
+
+            // Curva Desplazada O1
+            const seg1 = getLineSegment(currentA);
+            if (seg1) {
+                ctx.save();
+                ctx.strokeStyle = '#ea580c';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(toX(seg1.q2), toY(seg1.p2)); // Bottom-left
+                ctx.lineTo(toX(seg1.q1), toY(seg1.p1)); // Top-right
+                ctx.stroke();
+                ctx.restore();
+
+                ctx.fillStyle = '#ea580c';
+                ctx.font = '700 12px sans-serif';
+                ctx.fillText('O₁', toX(seg1.q1) + 14, toY(seg1.p1) + 8);
+            }
+
+            // Punto de Equilibrio (Q, P)
+            const curP = parseFloat(priceInput.value);
+            const calculatedQ = currentA + 10 * curP;
+            const curQ = Math.max(0, calculatedQ);
+
+            const ptX = toX(curQ);
+            const ptY = toY(curP);
+
+            if(calculatedQ >= 0) {
+                // Proyecciones Punteadas
+                ctx.save();
+                ctx.strokeStyle = '#94a3b8';
+                ctx.setLineDash([3, 3]);
+                ctx.lineWidth = 1.25;
+                ctx.beginPath();
+                ctx.moveTo(ptX, padTop + graphH);
+                ctx.lineTo(ptX, ptY);
+                ctx.lineTo(padLeft, ptY);
+                ctx.stroke();
+                ctx.restore();
+
+                // Halo y Punto Central
+                ctx.save();
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.12)';
+                ctx.beginPath();
+                ctx.arc(ptX, ptY, 10, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath();
+                ctx.arc(ptX, ptY, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Etiqueta de Coordenadas
+                ctx.fillStyle = '#0f172a';
+                ctx.font = '600 11px ui-monospace, SFMono-Regular, Menlo, monospace';
+                ctx.textAlign = curQ > 115 ? 'right' : 'left';
+                const offsetLabelX = curQ > 115 ? -12 : 12;
+                ctx.fillText(`(${curQ.toFixed(1)} u, S/ ${curP.toFixed(2)})`, ptX + offsetLabelX, ptY + 14);
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                resizeCanvas();
+                update();
+            });
+        } else {
+            resizeCanvas();
+            update();
+        }
+
+        window.addEventListener('load', () => {
+            resizeCanvas();
+            update();
+        });
+    </script>
+</body>
+</html>
